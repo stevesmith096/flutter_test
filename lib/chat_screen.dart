@@ -119,8 +119,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _messageStreamSubscription.cancel();
+
     _messageController.dispose();
-    _stopMessageStream();
 
     super.dispose();
   }
@@ -369,11 +370,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     color: Colors.blue,
                   ),
                   onPressed: () {
-                    _sendMessage(
-                        image.isEmpty ? _messageController.text : image,
-                        currentUser,
-                        image.isEmpty ? 'text' : 'image');
-                    image = '';
+                    if (_messageController.text.isNotEmpty ||
+                        image.isNotEmpty) {
+                      _sendMessage(
+                          image.isEmpty ? _messageController.text : image,
+                          currentUser,
+                          image.isEmpty ? 'text' : 'image');
+                      image = '';
+                    }
+
                     // Add your code here to send the message
                     setState(() {});
                   },
