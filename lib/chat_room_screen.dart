@@ -1,191 +1,4 @@
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:flutter_testing/auth_service.dart';
-
-// import 'chat_screen.dart';
-
-// class ChatRoomScreen extends StatelessWidget {
-//   // Reference to the Firestore instance
-//   final FirebaseAuth _auth = FirebaseAuth.instance;
-
-//   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     String? currentUserId = _auth.currentUser?.uid;
-
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('User Chat Room'),
-//       ),
-// //       body: StreamBuilder<QuerySnapshot>(
-// //         // Query the Firestore collection containing user data
-// //         stream: _firestore.collection('users').where(FieldPath.documentId, isNotEqualTo: currentUserId)
-// //             .snapshots(),
-// //         builder: (context, snapshot) {
-// //           if (snapshot.connectionState == ConnectionState.waiting) {
-// //             // Display a loading indicator while waiting for data
-// //             return Center(child: CircularProgressIndicator());
-// //           }
-
-// //           if (snapshot.hasError) {
-// //             // Handle errors
-// //             return Center(child: Text('Error: ${snapshot.error}'));
-// //           }
-
-// //           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-// //             // Handle empty data
-// //             return Center(child: Text('No users found.'));
-// //           }
-
-// //           // Get the list of documents from the snapshot
-// //           List<DocumentSnapshot> docs = snapshot.data!.docs;
-
-// //           return ListView.builder(
-// //   itemCount: docs.length,
-// //   itemBuilder: (context, index) {
-// //     // Get the data of each document
-// //     Map<String, dynamic> userData = docs[index].data() as Map<String, dynamic>;
-// // print(userData);
-// //     // Display the user's name and email
-// //     return Card(
-// //       color: Theme.of(context).cardColor,
-// //       child: ListTile(
-// //         title: Text(
-// //           userData['name'] ?? 'No Name',
-// //           style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Theme.of(context).secondaryHeaderColor),
-// //         ),
-// //         subtitle: Text(userData['email'] ?? 'No Email'),
-// //         onTap: () {
-// //           // Get the current user ID (assume using FirebaseAuth)
-// //           String currentUserId = FirebaseAuth.instance.currentUser!.uid;
-
-// //           // Get the selected user's ID
-// //           String selectedUserId = userData['userID']; // Make sure the 'userId' field is in the Firestore document
-
-// //           // Create the chatroom ID
-// //           String chatroomId = createChatroomId(currentUserId, selectedUserId);
-
-// //           // Navigate to the chat screen, passing the chatroom ID and selected user's data
-// //           Navigator.push(
-// //             context,
-// //             MaterialPageRoute(
-// //               builder: (context) => ChatScreen(
-// //                 chatroomId: chatroomId,
-// //                 selectedUser: userData,
-// //               ),
-// //             ),
-// //           );
-// //         },
-// //       ),
-// //     );
-// //   },
-// // );
-
-// //         },
-//       body: StreamBuilder<QuerySnapshot>(
-//         stream: _firestore
-//             .collection('users')
-//             .where(FieldPath.documentId, isNotEqualTo: currentUserId)
-//             .snapshots(),
-//         builder: (context, snapshot) {
-//           if (snapshot.connectionState == ConnectionState.waiting) {
-//             // Display a loading indicator while waiting for data
-//             return Center(child: CircularProgressIndicator());
-//           }
-
-//           if (snapshot.hasError) {
-//             // Handle errors
-//             return Center(child: Text('Error: ${snapshot.error}'));
-//           }
-
-//           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-//             // Handle empty data
-//             return const Center(child: Text('No users found.'));
-//           } else {
-//             List<DocumentSnapshot> docs = snapshot.data!.docs;
-
-//             return ListView.builder(
-//                 itemCount: docs.length,
-//                 itemBuilder: (context, index) {
-//                   Map<String, dynamic> data =
-//                       docs[index].data() as Map<String, dynamic>;
-//                   String roomId =
-//                       createChatRoomId(_auth.currentUser!.uid, data['userID']);
-
-//                   return StreamBuilder<DocumentSnapshot>(
-//                     stream: _firestore
-//                         .collection('chatrooms')
-//                         .doc(roomId)
-//                         .snapshots(),
-//                     builder: (context, snapshot) {
-//                       if (snapshot.hasData && snapshot.data!.exists) {
-//                         // Document exists
-//                         return Padding(
-//                           padding: const EdgeInsets.only(bottom: 20.0),
-//                           child: GestureDetector(
-//                             onTap: () {
-//                               String selectedUser = data['userID'];
-//                               String roomId = createChatRoomId(
-//                                   _auth.currentUser!.uid, selectedUser);
-//                               debugPrint(roomId);
-//                               Navigator.push(
-//                                 context,
-//                                 MaterialPageRoute(
-//                                   builder: (context) => ChatScreen(
-//                                     chatroomId: roomId,
-//                                     selectedUser: data,
-//                                   ),
-//                                 ),
-//                               );
-//                             },
-//                             child: Container(
-//                               color: Colors.purple,
-//                               child: ListTile(
-//                                 title: Text(data['name']),
-//                                 subtitle: Text(data['email']),
-//                               ),
-//                             ),
-//                           ),
-//                         );
-//                       } else {
-//                         // Document doesn't exist
-//                         return SizedBox(); // or any other widget if you want to show something else
-//                       }
-//                     },
-//                   );
-//                 });
-//           }
-//         },
-//       ),
-//     );
-//   }
-
-//   String createChatRoomId(String user1, String user2) {
-//     // Create a list with both user IDs
-//     List<String> userIds = [user1, user2];
-
-//     // Sort the user IDs alphabetically
-//     userIds.sort();
-
-//     // Combine the sorted user IDs with an underscore to create the chatroomId
-//     return '${userIds[0]}_${userIds[1]}';
-//   }
-// }
-// // String createChatroomId(String userId1, String userId2) {
-// //     // Create a list with both user IDs
-// //     List<String> userIds = [userId1, userId2];
-
-// //     // Sort the user IDs alphabetically
-// //     userIds.sort();
-
-// //     // Combine the sorted user IDs with an underscore to create the chatroomId
-// //     return '${userIds[0]}_${userIds[1]}';
-// // }
-
-// // }
+import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -194,9 +7,16 @@ import 'package:flutter_testing/chat_screen.dart';
 import 'package:flutter_testing/home_screen.dart';
 import 'package:intl/intl.dart';
 
-class ChatRoomScreen extends StatelessWidget {
+class ChatRoomScreen extends StatefulWidget {
   ChatRoomScreen({super.key});
+
+  @override
+  State<ChatRoomScreen> createState() => _ChatRoomScreenState();
+}
+
+class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
@@ -244,8 +64,10 @@ class ChatRoomScreen extends StatelessWidget {
                       Timestamp timestamp =
                           snapshot.data!['lastMessage']['timestamp'];
                       String formattedTime = formatTimestamp(timestamp);
-                      debugPrint(snapshot.data?['lastMessage']['timestamp']
-                          .toString());
+                      String textType =
+                          snapshot.data!['lastMessage']['texType'].toString();
+                      bool isImage = textType == 'image';
+                      debugPrint(isImage.toString());
                       return GestureDetector(
                         onTap: () {
                           String selectedUser = data['userID'];
@@ -262,16 +84,129 @@ class ChatRoomScreen extends StatelessWidget {
                                 ),
                               ));
                         },
-                        child: Card(
-                            shadowColor: Colors.grey[200],
-                            elevation: 4,
-                            child: ListTile(
-                              trailing: Text(formattedTime),
-                              title: Text(data['name'] ?? ''),
-                              subtitle: Text(snapshot.data!['lastMessage']
-                                      ['content'] ??
-                                  ''),
-                            )),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                          child: Card(
+                              shadowColor: Colors.grey[200],
+                              elevation: 4,
+                              child: Padding(
+                                  padding: const EdgeInsets.all(15.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                data['name'] ?? '',
+                                                style: const TextStyle(
+                                                    fontSize: 17,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              isImage
+                                                  ? Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: Image.network(
+                                                        snapshot.data![
+                                                                'lastMessage']
+                                                            ['content'],
+                                                        height: 50,
+                                                      ),
+                                                    )
+                                                  : Text(snapshot.data![
+                                                              'lastMessage']
+                                                          ['content'] ??
+                                                      '')
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Text(formattedTime),
+                                              StreamBuilder<QuerySnapshot>(
+                                                stream: _firestore
+                                                    .collection('chatrooms')
+                                                    .doc(roomId)
+                                                    .collection('messages')
+                                                    .snapshots(),
+                                                builder: (context, snapshot) {
+                                                  if (snapshot
+                                                          .connectionState ==
+                                                      ConnectionState.waiting) {
+                                                    return Container(); // or return a loading indicator
+                                                  }
+                                                  if (snapshot.hasError) {
+                                                    return Container(); // or handle the error
+                                                  }
+                                                  List<DocumentSnapshot> docs =
+                                                      snapshot.data!.docs;
+                                                  List<bool> unReadVal = [];
+                                                  for (var i = 0;
+                                                      i <
+                                                          snapshot.data!.docs
+                                                              .length;
+                                                      i++) {
+                                                    Map<String, dynamic>
+                                                        dataDocs =
+                                                        docs[i].data() as Map<
+                                                            String, dynamic>;
+                                                    if (dataDocs['senderId'] !=
+                                                            _auth.currentUser!
+                                                                .uid &&
+                                                        dataDocs['isRead'] ==
+                                                            false) {
+                                                      unReadVal.add(
+                                                          dataDocs['isRead']);
+                                                    }
+                                                  }
+
+                                                  return unReadVal.isEmpty
+                                                      ? Container()
+                                                      : Container(
+                                                          decoration:
+                                                              const BoxDecoration(
+                                                            color: Colors.red,
+                                                            shape:
+                                                                BoxShape.circle,
+                                                          ),
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(6.0),
+                                                            child: Text(
+                                                              unReadVal.length
+                                                                  .toString(),
+                                                              style: const TextStyle(
+                                                                  color: Colors
+                                                                      .white),
+                                                            ),
+                                                          ),
+                                                        );
+                                                },
+                                              )
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    ],
+                                  ))),
+                        ),
                       );
                     } else {
                       return const SizedBox();

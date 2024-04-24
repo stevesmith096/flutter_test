@@ -33,15 +33,12 @@ class MyApp extends StatelessWidget {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.active) {
                   User? user = snapshot.data;
-                  // If the user is logged in, navigate to the home screen
                   if (user != null) {
-                    return UserListScreen();
+                    return const UserListScreen();
                   } else {
-                    // If the user is not logged in, navigate to the login screen
                     return SigninScreen();
                   }
                 }
-                // Show a loading indicator while waiting for authentication state
                 return const Center(child: CircularProgressIndicator());
               },
             ),

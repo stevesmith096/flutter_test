@@ -41,14 +41,14 @@ class _SigninScreenState extends State<SigninScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  SizedBox(height: 110),
+                  const SizedBox(height: 110),
                   Center(
                       child: Image.asset(
                     'assets/images/logo_carter.png',
                     width: 249,
                     height: 126,
                   )),
-                  SizedBox(height: 45),
+                  const SizedBox(height: 45),
                   Text(
                     'Welcome back!',
                     style: TextStyle(
