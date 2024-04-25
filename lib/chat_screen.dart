@@ -82,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void getImage(
     ImageSource imageSource,
   ) async {
+    // isBottomSheetOpen = true;
     final pickedFile = await ImagePicker().pickImage(source: imageSource);
     if (pickedFile != null) {
       File data = File(pickedFile.path);
@@ -95,6 +96,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         var downloadUrl = await snapshot.ref.getDownloadURL();
 
         image = downloadUrl;
+        // isBottomSheetOpen = false;
         setState(() {});
       } else {
         Get.snackbar(
@@ -107,26 +109,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-//////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////
   late StreamSubscription<QuerySnapshot> _messageStreamSubscription;
 
   @override
   void initState() {
     super.initState();
-    _startMessageStream();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    _messageStreamSubscription.cancel();
-
-    _messageController.dispose();
-
-    super.dispose();
-  }
-
-  void _startMessageStream() {
     _messageStreamSubscription = FirebaseFirestore.instance
         .collection('chatrooms')
         .doc(widget.roomId)
@@ -134,9 +122,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         .where('senderId', isNotEqualTo: _auth.currentUser!.uid)
         .snapshots()
         .listen((snapshot) {
-      debugPrint(snapshot.docs.length.toString());
       snapshot.docs.forEach((doc) async {
-        // Update each document's isRead field to true
         await FirebaseFirestore.instance
             .collection('chatrooms')
             .doc(widget.roomId)
@@ -147,19 +133,84 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
-  void _stopMessageStream() {
+  @override
+  void dispose() {
     _messageStreamSubscription.cancel();
+    super.dispose();
   }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // _startMessageStream();
+  //   // WidgetsBinding.instance.addObserver(this);
+  //   FirebaseFirestore.instance
+  //       .collection('chatrooms')
+  //       .doc(widget.roomId)
+  //       .collection('messages')
+  //       .where('senderId', isNotEqualTo: _auth.currentUser!.uid)
+  //       .snapshots()
+  //       .listen((snapshot) {
+  //     // debugPrint(snapshot.docs.length.toString());
+  //     snapshot.docs.forEach((doc) async {
+  //       // Update each document's isRead field to true
+  //       await FirebaseFirestore.instance
+  //           .collection('chatrooms')
+  //           .doc(widget.roomId)
+  //           .collection('messages')
+  //           .doc(doc.id)
+  //           .update({'isRead': true});
+  //     });
+  //   });
+  // }
+
+  // @override
+  // void dispose() {
+  //   _stopMessageStream();
+
+  //   _messageController.dispose();
+  //   super.dispose();
+  // }
+
+  // bool isBottomSheetOpen = false;
+
+  // void _startMessageStream() {
+  //   debugPrint('on Stream');
+  //   _messageStreamSubscription = FirebaseFirestore.instance
+  //       .collection('chatrooms')
+  //       .doc(widget.roomId)
+  //       .collection('messages')
+  //       .where('senderId', isNotEqualTo: _auth.currentUser!.uid)
+  //       .snapshots()
+  //       .listen((snapshot) {
+  //     // debugPrint(snapshot.docs.length.toString());
+  //     snapshot.docs.forEach((doc) async {
+  //       // Update each document's isRead field to true
+  //       await FirebaseFirestore.instance
+  //           .collection('chatrooms')
+  //           .doc(widget.roomId)
+  //           .collection('messages')
+  //           .doc(doc.id)
+  //           .update({'isRead': true});
+  //     });
+  //   });
+  // }
+
+  // void _stopMessageStream() {
+  //   debugPrint('off Stream');
+  //   _messageStreamSubscription.cancel();
+  // }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Only handle lifecycle events if bottom sheet is not open
     if (state == AppLifecycleState.resumed) {
       // online
-      _startMessageStream();
+      _messageStreamSubscription.resume();
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       // offline
-      _stopMessageStream();
+      _messageStreamSubscription.cancel();
     }
   }
 
@@ -379,7 +430,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       image = '';
                     }
 
-                    // Add your code here to send the message
                     setState(() {});
                   },
                 ),
