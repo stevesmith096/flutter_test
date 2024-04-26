@@ -12,16 +12,22 @@ import 'package:flutter_testing/message_box.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ChatScreen extends StatefulWidget {
+class GroupChatScreen extends StatefulWidget {
   final String roomId;
-  final Map<String, dynamic> data;
-  const ChatScreen({super.key, required this.roomId, required this.data});
+  // final Map<String, dynamic> data;
+  final String groupName;
+  const GroupChatScreen(
+      {super.key,
+      required this.roomId,
+      // required this.data,
+      required this.groupName});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<GroupChatScreen> createState() => _GroupChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
+class _GroupChatScreenState extends State<GroupChatScreen>
+    with WidgetsBindingObserver {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -38,17 +44,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     // Reference to the chat room document
     final DocumentReference chatRoomRef =
-        _firestore.collection('chatrooms').doc(widget.roomId);
+        _firestore.collection('groupchatrooms').doc(widget.roomId);
 
-    // First, check if the chat room document exists
-    final chatRoomSnapshot = await chatRoomRef.get();
-    if (!chatRoomSnapshot.exists) {
-      debugPrint(
-          'Chat room document not found. Creating a new chat room document.');
-      await chatRoomRef.set({
-        'userIds': [currentUser.uid, widget.data['userID']],
-      });
-    }
     await _firestore.runTransaction((transaction) async {
       final DocumentReference newMessageRef =
           chatRoomRef.collection('messages').doc();
@@ -171,32 +168,32 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.data['name']),
-            StreamBuilder<DocumentSnapshot>(
-              stream: _firestore
-                  .collection('users')
-                  .doc(widget.data['userID'])
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Text('Loading...'); // Add a loading indicator
-                }
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
-                if (!snapshot.hasData || snapshot.data!.data() == null) {
-                  return const Text(
-                      'No data available'); // Handle case where snapshot is empty or data is null
-                }
+            Text(widget.groupName),
+            // StreamBuilder<DocumentSnapshot>(
+            //   stream: _firestore
+            //       .collection('users')
+            //       .doc(widget.data['userID'])
+            //       .snapshots(),
+            //   builder: (context, snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.waiting) {
+            //       return const Text('Loading...'); // Add a loading indicator
+            //     }
+            //     if (snapshot.hasError) {
+            //       return Text('Error: ${snapshot.error}');
+            //     }
+            //     if (!snapshot.hasData || snapshot.data!.data() == null) {
+            //       return const Text(
+            //           'No data available'); // Handle case where snapshot is empty or data is null
+            //     }
 
-                // Safely access the data from the snapshot
-                Map<String, dynamic> userData =
-                    snapshot.data!.data() as Map<String, dynamic>;
-                bool isOnline = userData['isOnline'] == true;
+            //     // Safely access the data from the snapshot
+            //     Map<String, dynamic> userData =
+            //         snapshot.data!.data() as Map<String, dynamic>;
+            //     bool isOnline = userData['isOnline'] == true;
 
-                return Text(isOnline ? 'Online' : 'Offline');
-              },
-            )
+            //     return Text(isOnline ? 'Online' : 'Offline');
+            //   },
+            // )
           ],
         ),
       ),

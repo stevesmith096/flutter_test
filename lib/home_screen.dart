@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_testing/chat_room_screen.dart';
 import 'package:flutter_testing/chat_screen.dart';
+import 'package:flutter_testing/group_chatroom_screen.dart';
+import 'package:flutter_testing/group_screen.dart';
 import 'package:flutter_testing/signin_screen.dart';
 
 class UserListScreen extends StatefulWidget {
@@ -58,6 +60,18 @@ class _UserListScreenState extends State<UserListScreen>
                   Navigator.push(
                       context,
                       MaterialPageRoute(
+                        builder: (context) => GroupChatRoomScreen(),
+                      ));
+                },
+                child: const Icon(Icons.chat_outlined)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
                         builder: (context) => ChatRoomScreen(),
                       ));
                 },
@@ -83,6 +97,18 @@ class _UserListScreenState extends State<UserListScreen>
                       ));
                 },
                 child: const Icon(Icons.login)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: GestureDetector(
+                onTap: () async {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GroupScreen(),
+                      ));
+                },
+                child: const Icon(Icons.group)),
           )
         ],
       ),
