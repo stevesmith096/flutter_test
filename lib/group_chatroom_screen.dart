@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_testing/chat_room_screen.dart';
 import 'package:flutter_testing/group_chat_screen.dart';
 import 'package:flutter_testing/group_screen.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +20,7 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
+  String roomId = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +54,18 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
               itemBuilder: (context, index) {
                 Map<String, dynamic> data =
                     docs[index].data() as Map<String, dynamic>;
-                debugPrint(data['userIds'].toString());
+
+                // debugPrint(data['lastMessage'].toString());
+                Timestamp timestamp = data['lastMessage'] != null
+                    ? (data['lastMessage']['timestamp'] as Timestamp)
+                    : Timestamp.now();
+                String formattedTime = formatTimestamp(timestamp);
+                debugPrint(formattedTime);
+                String textType = data['lastMessage'] != null
+                    ? (data['lastMessage']['texType'] ?? '')
+                    : '';
+
+                bool isImage = textType == 'image';
                 return StreamBuilder<QuerySnapshot>(
                   stream: _firestore
                       .collection('users')
@@ -63,6 +75,7 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
                     List<DocumentSnapshot> docsUser = snapshot.data?.docs ?? [];
                     List<String> userNames = [];
                     String groupName = '';
+                    // debugPrint(docsUser[index].id);
                     for (var i = 0; i < docsUser.length; i++) {
                       userNames.add(
                           docsUser[i]['userID'] == _auth.currentUser!.uid
@@ -71,6 +84,7 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
 
                       groupName = userNames.join(',');
                     }
+
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 5.0),
                       child: GestureDetector(
@@ -80,16 +94,17 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
                             id.add(e);
                           }
                           debugPrint('group chat');
-                          String roomId =
-                              createRoomId(id, _auth.currentUser!.uid);
-                          log(roomId.toString());
 
+                          roomId = createRoomId(id, _auth.currentUser!.uid);
+                          log(roomId.toString());
+                          debugPrint(roomId);
                           Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => GroupChatScreen(
                                   groupName: groupName,
                                   roomId: roomId,
+                                  userIds: id,
                                   // data: data['userIds'],
                                 ),
                               ));
@@ -111,18 +126,58 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              groupName,
-                                              style: const TextStyle(
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.bold),
+                                            StreamBuilder<QuerySnapshot>(
+                                              stream: _firestore
+                                                  .collection('groupchatrooms')
+                                                  .where(FieldPath.documentId,
+                                                      isEqualTo: roomId)
+                                                  .snapshots(),
+                                              builder: (context, snapshot) {
+                                                final docs =
+                                                    snapshot.data?.docs ?? [];
+
+                                                return docs.isEmpty
+                                                    ? Text(
+                                                        groupName,
+                                                        style: const TextStyle(
+                                                            fontSize: 17,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      )
+                                                    : Text(
+                                                        docs[0]['groupName'] ==
+                                                                ''
+                                                            ? groupName
+                                                            : docs[0]
+                                                                ['groupName'],
+                                                        style: const TextStyle(
+                                                            fontSize: 17,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      );
+                                              },
                                             ),
-                                            const Text('hello'),
+                                            isImage
+                                                ? Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Image.network(
+                                                      data['lastMessage']
+                                                          ['content'],
+                                                      height: 50,
+                                                    ),
+                                                  )
+                                                : Text(data['lastMessage']
+                                                        ['content'] ??
+                                                    '')
                                           ],
                                         )
                                       ],
                                     ),
-                                    const Row(
+                                    Row(
                                       children: [
                                         Column(
                                           mainAxisAlignment:
@@ -130,12 +185,14 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.end,
                                           children: [
-                                            Text('18:00AM'),
+                                            Text(formattedTime),
                                             // StreamBuilder<QuerySnapshot>(
                                             //   stream: _firestore
-                                            //       .collection('chatrooms')
+                                            //       .collection('groupchatrooms')
                                             //       .doc(roomId)
                                             //       .collection('messages')
+                                            //       .doc(docsUser[index].id)
+                                            //       .collection('isRead')
                                             //       .snapshots(),
                                             //   builder: (context, snapshot) {
                                             //     if (snapshot.connectionState ==
@@ -149,22 +206,20 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
                                             //         snapshot.data!.docs;
                                             //     List<bool> unReadVal = [];
                                             //     for (var i = 0;
-                                            //         i <
-                                            //             snapshot
-                                            //                 .data!.docs.length;
+                                            //         i < docs.length;
                                             //         i++) {
-                                            //       Map<String, dynamic> dataDocs =
-                                            //           docs[i].data()
-                                            //               as Map<String, dynamic>;
-                                            //       if (dataDocs['senderId'] !=
-                                            //               _auth
-                                            //                   .currentUser!.uid &&
-                                            //           dataDocs['isRead'] ==
-                                            //               false) {
-                                            //         unReadVal
-                                            //             .add(dataDocs['isRead']);
+                                            //       Map<String, dynamic>
+                                            //           dataDocs = docs[i].data()
+                                            //               as Map<String,
+                                            //                   dynamic>;
+                                            //       if (dataDocs['isRead'] ==
+                                            //           false) {
+                                            //         unReadVal.add(
+                                            //             dataDocs['isRead']);
                                             //       }
                                             //     }
+                                            //     debugPrint(
+                                            //         unReadVal.toString());
 
                                             //     return unReadVal.isEmpty
                                             //         ? Container()
@@ -172,7 +227,8 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
                                             //             decoration:
                                             //                 const BoxDecoration(
                                             //               color: Colors.red,
-                                            //               shape: BoxShape.circle,
+                                            //               shape:
+                                            //                   BoxShape.circle,
                                             //             ),
                                             //             child: Padding(
                                             //               padding:

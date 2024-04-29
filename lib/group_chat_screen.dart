@@ -1,24 +1,29 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_testing/camera_sheet.dart';
 import 'package:flutter_testing/chat_model.dart';
 import 'package:flutter_testing/chat_room_screen.dart';
+import 'package:flutter_testing/group_bottomsheet.dart';
 import 'package:flutter_testing/message_box.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 class GroupChatScreen extends StatefulWidget {
   final String roomId;
+  final List<String> userIds;
   // final Map<String, dynamic> data;
   final String groupName;
   const GroupChatScreen(
       {super.key,
       required this.roomId,
+      required this.userIds,
       // required this.data,
       required this.groupName});
 
@@ -45,17 +50,33 @@ class _GroupChatScreenState extends State<GroupChatScreen>
     // Reference to the chat room document
     final DocumentReference chatRoomRef =
         _firestore.collection('groupchatrooms').doc(widget.roomId);
+    final userDoc =
+        await _firestore.collection('users').doc(currentUser.uid).get();
+    final userName = userDoc['name'];
+    List<Map<String, dynamic>> idIndexMap = [];
 
+// Iterate through the list of IDs and map each ID to its index
+
+    log(idIndexMap.toString());
     await _firestore.runTransaction((transaction) async {
       final DocumentReference newMessageRef =
           chatRoomRef.collection('messages').doc();
       await transaction.set(newMessageRef, {
         'senderId': currentUser.uid,
         'text': messageContent,
+        'userName': userName,
         'textType': type,
         'timestamp': FieldValue.serverTimestamp(),
-        'isRead': false,
       });
+      for (int i = 0; i < widget.userIds.length; i++) {
+        if (widget.userIds[i] == _auth.currentUser!.uid) {
+        } else {
+          final DocumentReference newReadRef =
+              newMessageRef.collection('isRead').doc(widget.userIds[i]);
+          await transaction
+              .set(newReadRef, {'id': widget.userIds[i], 'isRead': false});
+        }
+      }
 
       // Update the lastMessage field in the chat room document
       await transaction.update(chatRoomRef, {
@@ -111,12 +132,12 @@ class _GroupChatScreenState extends State<GroupChatScreen>
 
   @override
   void initState() {
-    WidgetsBinding.instance.addObserver(this);
+    // WidgetsBinding.instance.addObserver(this);
 
     super.initState();
 
     _messageStreamSubscription = FirebaseFirestore.instance
-        .collection('chatrooms')
+        .collection('groupchatrooms')
         .doc(widget.roomId)
         .collection('messages')
         .where('senderId', isNotEqualTo: _auth.currentUser!.uid)
@@ -124,20 +145,20 @@ class _GroupChatScreenState extends State<GroupChatScreen>
         .listen((snapshot) {
       snapshot.docs.forEach((doc) async {
         await FirebaseFirestore.instance
-            .collection('chatrooms')
+            .collection('groupchatrooms')
             .doc(widget.roomId)
             .collection('messages')
             .doc(doc.id)
+            .collection('isRead')
+            .doc(_auth.currentUser!.uid)
             .update({'isRead': true});
       });
     });
-    debugPrint('init');
   }
 
   @override
   void dispose() {
     _messageStreamSubscription.cancel();
-    debugPrint('dispose');
     super.dispose();
   }
 
@@ -147,14 +168,15 @@ class _GroupChatScreenState extends State<GroupChatScreen>
     if (state == AppLifecycleState.resumed) {
       // online
       _messageStreamSubscription.resume();
-      debugPrint('on');
+      // debugPrint('on');
     } else if (state == AppLifecycleState.paused) {
       // offline
       _messageStreamSubscription.pause();
-      debugPrint('off');
+      // debugPrint('off');
     }
   }
 
+  String name = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,38 +186,36 @@ class _GroupChatScreenState extends State<GroupChatScreen>
               Navigator.pop(context);
             },
             child: const Icon(Icons.arrow_back)),
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.groupName),
-            // StreamBuilder<DocumentSnapshot>(
-            //   stream: _firestore
-            //       .collection('users')
-            //       .doc(widget.data['userID'])
-            //       .snapshots(),
-            //   builder: (context, snapshot) {
-            //     if (snapshot.connectionState == ConnectionState.waiting) {
-            //       return const Text('Loading...'); // Add a loading indicator
-            //     }
-            //     if (snapshot.hasError) {
-            //       return Text('Error: ${snapshot.error}');
-            //     }
-            //     if (!snapshot.hasData || snapshot.data!.data() == null) {
-            //       return const Text(
-            //           'No data available'); // Handle case where snapshot is empty or data is null
-            //     }
+        title: StreamBuilder<QuerySnapshot>(
+          stream: _firestore
+              .collection('groupchatrooms')
+              .where(FieldPath.documentId, isEqualTo: widget.roomId)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: SizedBox());
+            } else {
+              final docs = snapshot.data!.docs;
 
-            //     // Safely access the data from the snapshot
-            //     Map<String, dynamic> userData =
-            //         snapshot.data!.data() as Map<String, dynamic>;
-            //     bool isOnline = userData['isOnline'] == true;
-
-            //     return Text(isOnline ? 'Online' : 'Offline');
-            //   },
-            // )
-          ],
+              name = docs[0]['groupName'] == ''
+                  ? widget.groupName
+                  : docs[0]['groupName'];
+              return Text(docs[0]['groupName'] == ''
+                  ? widget.groupName
+                  : docs[0]['groupName']);
+            }
+          },
         ),
+        actions: [
+          GestureDetector(
+              onTap: () {
+                showGroupNameBottomSheet(name, context, widget.roomId);
+              },
+              child: const Icon(
+                Icons.edit,
+                color: Colors.white,
+              ))
+        ],
       ),
       backgroundColor: Colors.white,
       body: Column(
@@ -206,7 +226,7 @@ class _GroupChatScreenState extends State<GroupChatScreen>
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore
-                  .collection('chatrooms')
+                  .collection('groupchatrooms')
                   .doc(widget.roomId)
                   .collection('messages')
                   .orderBy('timestamp', descending: true)
@@ -235,27 +255,74 @@ class _GroupChatScreenState extends State<GroupChatScreen>
                       bool isMe = data['senderId'] == _auth.currentUser!.uid
                           ? true
                           : false;
-                      debugPrint(isMe.toString());
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: Align(
-                          alignment:
-                              isMe ? Alignment.topRight : Alignment.topLeft,
-                          child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10.0),
-                              child: MessageBox(
-                                recieved: isMe,
-                                text: data['text'],
-                                textType: data['textType'],
-                                chat: ChatModel(
-                                    titile: 'titile',
-                                    isRead: data['isRead'],
-                                    status: isMe.toString(),
-                                    time: formattedTime,
-                                    image: 'image',
-                                    message: data['text']),
-                              )),
-                        ),
+
+                      return StreamBuilder<QuerySnapshot>(
+                        stream: _firestore
+                            .collection('groupchatrooms')
+                            .doc(widget.roomId)
+                            .collection('messages')
+                            .doc(
+                                docs[index].id) // Use the message document's ID
+                            .collection('isRead')
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(child: SizedBox());
+                          }
+                          if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Error: ${snapshot.error}'));
+                          }
+                          if (!snapshot.hasData) {
+                            return const Center(child: Text('No users found.'));
+                          } else {
+                            List<DocumentSnapshot> readDocs =
+                                snapshot.data!.docs;
+                            List<String> ids = [];
+
+                            for (int i = 0; i < readDocs.length; i++) {
+                              ids.add(docs[i].id);
+                            }
+
+                            int isReadCount = 0;
+                            for (var i = 0; i < readDocs.length; i++) {
+                              if (readDocs[i]['isRead'] == true) {
+                                isReadCount += 1;
+                              }
+                            }
+                            log("READ: " + isReadCount.toString());
+
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              child: Align(
+                                alignment: isMe
+                                    ? Alignment.topRight
+                                    : Alignment.topLeft,
+                                child: Padding(
+                                    padding:
+                                        const EdgeInsets.only(bottom: 10.0),
+                                    child: MessageBox(
+                                      recieved: isMe,
+                                      isGroupChat: true,
+                                      chatUserName: data['userName'],
+                                      text: data['text'],
+                                      textType: data['textType'],
+                                      chat: ChatModel(
+                                          titile: 'titile',
+                                          isRead: isReadCount == ids.length
+                                              ? true
+                                              : false,
+                                          status: isMe.toString(),
+                                          time: formattedTime,
+                                          image: 'image',
+                                          message: data['text']),
+                                    )),
+                              ),
+                            );
+                          }
+                        },
                       );
                     },
                   );

@@ -8,12 +8,16 @@ class MessageBox extends StatelessWidget {
   final String? text;
   final ChatModel chat;
   final String textType;
+  final bool? isGroupChat;
+  final String? chatUserName;
 
   MessageBox(
       {Key? key,
       this.recieved = false,
       this.text,
       required this.chat,
+      this.isGroupChat = false,
+      this.chatUserName,
       required this.textType})
       : super(key: key);
 
@@ -37,6 +41,22 @@ class MessageBox extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
+                        isGroupChat == true
+                            ? Text(
+                                chatUserName!,
+                                style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold),
+                              )
+                            : const SizedBox(),
+                        isGroupChat == true
+                            ? const SizedBox(
+                                width: 40,
+                                child: Divider(
+                                  color: Colors.black,
+                                ),
+                              )
+                            : const SizedBox(),
                         textType == 'text'
                             ? Text(
                                 chat.message,
@@ -93,6 +113,22 @@ class MessageBox extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            isGroupChat == true
+                                ? Text(
+                                    chatUserName!,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  )
+                                : const SizedBox(),
+                            isGroupChat == true
+                                ? const SizedBox(
+                                    width: 40,
+                                    child: Divider(
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const SizedBox(),
                             textType == 'text'
                                 ? Text(
                                     chat.message,
@@ -113,7 +149,7 @@ class MessageBox extends StatelessWidget {
                                   style: const TextStyle(
                                       color: Colors.white, fontSize: 11.0),
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   width: 5.0,
                                 ),
                                 chat.isRead == true

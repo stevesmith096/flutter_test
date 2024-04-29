@@ -43,6 +43,13 @@ class _GroupScreenState extends State<GroupScreen> {
                           'Chat room document not found. Creating a new chat room document.');
                       await chatRoomRef.set({
                         'userIds': usersId,
+                        'groupName': '',
+                        'lastMessage': {
+                          'senderId': '',
+                          'content': '',
+                          'texType': '',
+                          'timestamp': FieldValue.serverTimestamp(),
+                        },
                       });
                     }
                   }
