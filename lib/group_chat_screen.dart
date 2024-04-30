@@ -280,9 +280,8 @@ class _GroupChatScreenState extends State<GroupChatScreen>
                             List<DocumentSnapshot> readDocs =
                                 snapshot.data!.docs;
                             List<String> ids = [];
-
                             for (int i = 0; i < readDocs.length; i++) {
-                              ids.add(docs[i].id);
+                              ids.add(readDocs[i].id);
                             }
 
                             int isReadCount = 0;
@@ -291,7 +290,7 @@ class _GroupChatScreenState extends State<GroupChatScreen>
                                 isReadCount += 1;
                               }
                             }
-                            log("READ: " + isReadCount.toString());
+                            // log("READ: " + isReadCount.toString());
 
                             return Padding(
                               padding:

@@ -66,6 +66,7 @@ void showGroupNameBottomSheet(
       child: GroupNameBottomSheet(
         currentName: groupName,
         onUpdate: (newName) {
+          debugPrint(newName);
           FirebaseFirestore.instance
               .collection('groupchatrooms')
               .doc(roomId)
