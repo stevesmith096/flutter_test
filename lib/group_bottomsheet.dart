@@ -30,7 +30,7 @@ class _GroupNameBottomSheetState extends State<GroupNameBottomSheet> {
         children: [
           TextField(
             controller: _controller,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Group Name',
             ),
           ),

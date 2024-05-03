@@ -7,7 +7,7 @@ class CameraBottomSheet extends StatelessWidget {
   final Color borderColor;
   final VoidCallback onImageClick;
   final VoidCallback onCameraClick;
-  CameraBottomSheet(
+  const CameraBottomSheet(
       {super.key,
       required this.context,
       required this.borderColor,
@@ -17,7 +17,7 @@ class CameraBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -27,7 +27,7 @@ class CameraBottomSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+           const SizedBox(
               height: 10.0,
             ),
             Padding(

@@ -247,6 +247,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           child: Padding(
                               padding: const EdgeInsets.only(bottom: 10.0),
                               child: MessageBox(
+                                onTap: () {
+                                  _firestore
+                                      .collection('chatrooms')
+                                      .doc(widget.roomId)
+                                      .collection('messages')
+                                      .where('timestamp', isEqualTo: timestamp)
+                                      .get()
+                                      .then((querySnapshot) {
+                                    querySnapshot.docs.forEach((doc) {
+                                      doc.reference.delete();
+                                    });
+                                  }).catchError((error) {
+                                    print("Error deleting document: $error");
+                                  });
+                                },
                                 recieved: isMe,
                                 text: data['text'],
                                 textType: data['textType'],

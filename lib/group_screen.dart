@@ -109,6 +109,7 @@ class _GroupScreenState extends State<GroupScreen> {
                     debugPrint(roomId);
                   },
                   child: Card(
+                      color: Colors.brown[900],
                       shadowColor: Colors.grey[200],
                       elevation: 4,
                       child: ListTile(

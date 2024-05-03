@@ -21,6 +21,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text('Chat'),
         leading: GestureDetector(
             onTap: () {
               Navigator.pop(context);
@@ -85,6 +86,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 5.0),
                           child: Card(
+                              color: Colors.brown[900],
                               shadowColor: Colors.grey[200],
                               elevation: 4,
                               child: Padding(

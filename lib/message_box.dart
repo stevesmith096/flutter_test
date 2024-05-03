@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_testing/chat_model.dart';
@@ -10,6 +12,7 @@ class MessageBox extends StatelessWidget {
   final String textType;
   final bool? isGroupChat;
   final String? chatUserName;
+  final VoidCallback? onTap;
 
   MessageBox(
       {Key? key,
@@ -18,6 +21,7 @@ class MessageBox extends StatelessWidget {
       required this.chat,
       this.isGroupChat = false,
       this.chatUserName,
+      this.onTap,
       required this.textType})
       : super(key: key);
 
@@ -69,6 +73,13 @@ class MessageBox extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            GestureDetector(
+                              onTap: onTap,
+                              child: Icon(
+                                Icons.delete,
+                                color: Colors.grey[700],
+                              ),
+                            ),
                             chat.isRead == true
                                 ? Image.asset(
                                     'assets/images/double-check.png',
@@ -163,6 +174,8 @@ class MessageBox extends StatelessWidget {
                                         color: Colors.grey[200],
                                         height: 20,
                                       ),
+                                GestureDetector(
+                                    onTap: onTap, child: Icon(Icons.delete))
                               ],
                             ),
                           ],

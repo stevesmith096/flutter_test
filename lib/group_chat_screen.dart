@@ -242,7 +242,6 @@ class _GroupChatScreenState extends State<GroupChatScreen>
                   return const Center(child: Text('No users found.'));
                 } else {
                   List<DocumentSnapshot> docs = snapshot.data!.docs;
-                  debugPrint(docs.toString());
 
                   return ListView.builder(
                     reverse: true,
@@ -303,6 +302,23 @@ class _GroupChatScreenState extends State<GroupChatScreen>
                                     padding:
                                         const EdgeInsets.only(bottom: 10.0),
                                     child: MessageBox(
+                                      onTap: () {
+                                        _firestore
+                                            .collection('groupchatrooms')
+                                            .doc(widget.roomId)
+                                            .collection('messages')
+                                            .where('timestamp',
+                                                isEqualTo: timestamp)
+                                            .get()
+                                            .then((querySnapshot) {
+                                          querySnapshot.docs.forEach((doc) {
+                                            doc.reference.delete();
+                                          });
+                                        }).catchError((error) {
+                                          print(
+                                              "Error deleting document: $error");
+                                        });
+                                      },
                                       recieved: isMe,
                                       isGroupChat: true,
                                       chatUserName: data['userName'],

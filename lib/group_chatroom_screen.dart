@@ -45,6 +45,7 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text('Group'),
         leading: GestureDetector(
             onTap: () {
               Navigator.pop(context);
@@ -139,6 +140,7 @@ class _GroupChatRoomScreenState extends State<GroupChatRoomScreen> {
                                 ));
                           },
                           child: Card(
+                              color: Colors.brown[900],
                               shadowColor: Colors.grey[200],
                               elevation: 4,
                               child: Padding(
